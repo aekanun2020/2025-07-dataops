@@ -35,6 +35,56 @@ pipeline {
                 }
             }
         }
+        
+        stage('Build Docker Image') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    sh '''
+                        # Build Docker image
+                        docker build -f deployment/Dockerfile -t thaibigdata/dataops-pipeline:${BUILD_NUMBER} .
+                        docker tag thaibigdata/dataops-pipeline:${BUILD_NUMBER} thaibigdata/dataops-pipeline:latest
+                    '''
+                }
+            }
+        }
+        
+        stage('Push to Docker Hub') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                            docker push thaibigdata/dataops-pipeline:${BUILD_NUMBER}
+                            docker push thaibigdata/dataops-pipeline:latest
+                            docker logout
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'db-password', variable: 'DB_PASSWORD')]) {
+                        sh '''
+                            export DB_PASSWORD="${DB_PASSWORD}"
+                            chmod +x deployment/deploy.sh
+                            ./deployment/deploy.sh
+                        '''
+                    }
+                }
+            }
+        }
     }
     
     post {

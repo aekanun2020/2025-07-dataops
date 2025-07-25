@@ -1,0 +1,65 @@
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: thaibigdata
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./deployment/Dockerfile
+        push: true
+        tags: |
+          thaibigdata/dataops-pipeline:latest
+          thaibigdata/dataops-pipeline:${{ github.sha }}
+        cache-from: type=registry,ref=thaibigdata/dataops-pipeline:buildcache
+        cache-to: type=registry,ref=thaibigdata/dataops-pipeline:buildcache,mode=max
+    
+    - name: Deploy to Production
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.PROD_HOST }}
+        username: ${{ secrets.PROD_USER }}
+        key: ${{ secrets.PROD_SSH_KEY }}
+        envs: DB_PASSWORD
+        script: |
+          export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+          cd /opt/dataops
+          git pull origin main
+          chmod +x deployment/deploy.sh
+          ./deployment/deploy.sh
+      env:
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+    
+    - name: Verify Deployment
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.PROD_HOST }}
+        username: ${{ secrets.PROD_USER }}
+        key: ${{ secrets.PROD_SSH_KEY }}
+        script: |
+          sleep 10
+          docker ps -f name=loan-etl-pipeline
+          docker logs --tail 50 loan-etl-pipeline

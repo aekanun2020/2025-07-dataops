@@ -45,9 +45,10 @@
 │       └── ci.yml
 │
 ├── Jenkinsfile           # Jenkins CI configuration
-├── requirements.txt      # Python dependencies
+├── requirements.txt      # Python dependencies  
 ├── pytest.ini           # Pytest configuration
 ├── run_all_tests.sh     # Script รัน test suite ทั้งหมด
+├── .gitignore           # Git ignore file
 └── README.md            # This file
 ```
 
@@ -111,17 +112,15 @@ pytest tests/ -v --cov=pre-production/etl --cov-report=html
 - **Test Matrix**: Python 3.8, 3.9, 3.10
 - **Features**:
   - Unit testing with pytest
-  - Code coverage with codecov
-  - Code linting with flake8
+  - Test reports และ coverage reports
   - Artifact upload
 
 ### Jenkins
 - **Features**:
-  - Virtual environment isolation
+  - Docker container สำหรับรัน tests
   - Unit testing with HTML reports
-  - Code coverage reports
-  - Code quality checks (flake8, bandit)
-  - Artifact archiving
+  - Coverage reports
+  - Test results archiving
 
 ### การตั้งค่า Jenkins:
 1. สร้าง Pipeline job ใหม่
@@ -177,9 +176,9 @@ git push origin feature/your-feature
 ## ข้อกำหนดระบบ
 
 - Python 3.8+
-- SQL Server (สำหรับรัน ETL จริง)
+- SQL Server (สำหรับรัน ETL จริง - ไม่จำเป็นสำหรับรัน tests)
+- Docker (สำหรับ Jenkins CI)
 - Git
-- pip
 
 ## การแก้ปัญหา
 
