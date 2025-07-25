@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.8'
-            args '-v /tmp:/tmp'
-        }
-    }
+    agent any
     
     options {
         // Keep only 10 builds
@@ -12,39 +7,32 @@ pipeline {
     }
     
     stages {
-        stage('Setup') {
+        stage('Run Tests in Docker') {
             steps {
-                echo 'Setting up Python environment...'
-                sh '''
-                    python --version
-                    pip install --upgrade pip
-                '''
-            }
-        }
-        
-        stage('Install Dependencies') {
-            steps {
-                echo 'Installing dependencies...'
-                sh '''
-                    pip install -r requirements.txt
-                    pip install pytest pytest-cov pytest-html
-                '''
-            }
-        }
-        
-        stage('Run Unit Tests') {
-            steps {
-                echo 'Running tests...'
-                sh '''
-                    pytest tests/test_data_cleaning.py \
-                        -v \
-                        --junitxml=test-results/junit.xml \
-                        --html=test-results/pytest-report.html \
-                        --self-contained-html \
-                        --cov=pre-production/etl \
-                        --cov-report=xml:test-results/coverage.xml \
-                        --cov-report=html:test-results/htmlcov
-                '''
+                script {
+                    sh '''
+                        # Pull Python image
+                        docker pull python:3.8
+                        
+                        # Run tests in Docker container
+                        docker run --rm \
+                            -v ${WORKSPACE}:/workspace \
+                            -w /workspace \
+                            python:3.8 bash -c "
+                                pip install --upgrade pip && \
+                                pip install -r requirements.txt && \
+                                pip install pytest pytest-cov pytest-html && \
+                                pytest tests/test_data_cleaning.py \
+                                    -v \
+                                    --junitxml=test-results/junit.xml \
+                                    --html=test-results/pytest-report.html \
+                                    --self-contained-html \
+                                    --cov=pre-production/etl \
+                                    --cov-report=xml:test-results/coverage.xml \
+                                    --cov-report=html:test-results/htmlcov
+                            "
+                    '''
+                }
             }
         }
     }
