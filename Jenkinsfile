@@ -4,8 +4,6 @@ pipeline {
     options {
         // Keep only 10 builds
         buildDiscarder(logRotator(numToKeepStr: '10'))
-        // Add timestamps to console output
-        timestamps()
     }
     
     environment {
