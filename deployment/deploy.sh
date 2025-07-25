@@ -52,22 +52,9 @@ if [ "$(docker ps -q -f name=${CONTAINER_NAME})" ]; then
     echo -e "${GREEN}✓ Deployment successful!${NC}"
     echo "Container ID: $(docker ps -q -f name=${CONTAINER_NAME})"
     
-    # Setup cron job for daily run
-    echo -e "${GREEN}Setting up daily schedule...${NC}"
-    
-    # Create cron script
-    cat > /tmp/run-etl-daily.sh << 'EOF'
-#!/bin/bash
-docker restart loan-etl-pipeline
-EOF
-    
-    chmod +x /tmp/run-etl-daily.sh
-    sudo mv /tmp/run-etl-daily.sh /usr/local/bin/
-    
-    # Add to crontab (14:30 Bangkok time daily)
-    (crontab -l 2>/dev/null | grep -v "run-etl-daily.sh" ; echo "30 14 * * * /usr/local/bin/run-etl-daily.sh >> /var/log/loan-etl/cron.log 2>&1") | crontab -
-    
-    echo -e "${GREEN}✓ Daily schedule set for 14:30 Asia/Bangkok${NC}"
+    # Note: Daily schedule should be set up manually on the server
+    echo -e "${GREEN}Note: Please set up daily schedule manually:${NC}"
+    echo "Add this to crontab: 30 14 * * * docker restart ${CONTAINER_NAME}"
 else
     echo -e "${RED}✗ Deployment failed!${NC}"
     docker logs ${CONTAINER_NAME}
