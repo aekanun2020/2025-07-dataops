@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     
@@ -37,29 +37,11 @@ jobs:
         cache-from: type=registry,ref=thaibigdata/dataops-pipeline:buildcache
         cache-to: type=registry,ref=thaibigdata/dataops-pipeline:buildcache,mode=max
     
-    - name: Deploy to Production
-      uses: appleboy/ssh-action@v0.1.5
-      with:
-        host: ${{ secrets.PROD_HOST }}
-        username: ${{ secrets.PROD_USER }}
-        key: ${{ secrets.PROD_SSH_KEY }}
-        envs: DB_PASSWORD
-        script: |
-          export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
-          cd /opt/dataops
-          git pull origin main
-          chmod +x deployment/deploy.sh
-          ./deployment/deploy.sh
-      env:
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-    
-    - name: Verify Deployment
-      uses: appleboy/ssh-action@v0.1.5
-      with:
-        host: ${{ secrets.PROD_HOST }}
-        username: ${{ secrets.PROD_USER }}
-        key: ${{ secrets.PROD_SSH_KEY }}
-        script: |
-          sleep 10
-          docker ps -f name=loan-etl-pipeline
-          docker logs --tail 50 loan-etl-pipeline
+    - name: Notify success
+      run: |
+        echo "✅ Docker image pushed successfully!"
+        echo "Image tags:"
+        echo "  - thaibigdata/dataops-pipeline:latest"
+        echo "  - thaibigdata/dataops-pipeline:${{ github.sha }}"
+        echo ""
+        echo "Jenkins will handle the deployment on the production server."

@@ -43,7 +43,7 @@ jobs:
     # Run tests with coverage
     - name: Run tests
       run: |
-        pytest tests/test_data_cleaning.py -v --cov=pre-production/etl --cov-report=xml --cov-report=html
+        pytest tests/ -v --cov=pre-production/etl --cov-report=xml --cov-report=html
     
     # Upload coverage reports
     - name: Upload coverage reports to Codecov
