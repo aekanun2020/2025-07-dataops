@@ -37,9 +37,6 @@ pipeline {
         }
         
         stage('Build Docker Image') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     sh '''
@@ -52,9 +49,6 @@ pipeline {
         }
         
         stage('Push to Docker Hub') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
@@ -70,9 +64,6 @@ pipeline {
         }
         
         stage('Deploy to Production') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     withCredentials([string(credentialsId: 'db-password', variable: 'DB_PASSWORD')]) {
