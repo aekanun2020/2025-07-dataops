@@ -22,7 +22,7 @@ pipeline {
                                 pip install --upgrade pip && \
                                 pip install -r requirements.txt && \
                                 pip install pytest pytest-cov pytest-html && \
-                                pytest tests/test_data_cleaning.py \
+                                pytest tests/ \
                                     -v \
                                     --junitxml=test-results/junit.xml \
                                     --html=test-results/pytest-report.html \

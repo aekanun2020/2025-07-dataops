@@ -11,7 +11,7 @@ fi
 
 # Run tests with coverage
 echo "📊 Running tests with coverage..."
-pytest tests/test_data_cleaning.py -v --cov=pre-production/etl --cov-report=term-missing --cov-report=html
+pytest tests/ -v --cov=pre-production/etl --cov-report=term-missing --cov-report=html
 
 # Check exit code
 if [ $? -eq 0 ]; then

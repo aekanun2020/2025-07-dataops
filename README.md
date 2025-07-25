@@ -36,7 +36,8 @@
 │   └── main.py            # Main ETL script
 │
 ├── tests/                 # Unit tests
-│   ├── test_data_cleaning.py
+│   ├── test_data_cleaning.py      # Data transformation tests
+│   ├── test_data_quality.py       # Data quality tests
 │   └── fixtures/          # Test data
 │
 ├── .github/               # GitHub Actions CI
@@ -46,6 +47,7 @@
 ├── Jenkinsfile           # Jenkins CI configuration
 ├── requirements.txt      # Python dependencies
 ├── pytest.ini           # Pytest configuration
+├── run_all_tests.sh     # Script รัน test suite ทั้งหมด
 └── README.md            # This file
 ```
 
@@ -77,6 +79,11 @@ python main.py
 
 ## การรัน Unit Tests
 
+### รันทั้งหมดด้วย script:
+```bash
+./run_all_tests.sh
+```
+
 ### รันทั้งหมด:
 ```bash
 pytest tests/ -v
@@ -85,6 +92,11 @@ pytest tests/ -v
 ### รันเฉพาะ test_data_cleaning:
 ```bash
 pytest tests/test_data_cleaning.py -v
+```
+
+### รันเฉพาะ test_data_quality:
+```bash
+pytest tests/test_data_quality.py -v
 ```
 
 ### รันพร้อม coverage report:
@@ -119,13 +131,23 @@ pytest tests/ -v --cov=pre-production/etl --cov-report=html
 
 ## Test Coverage
 
-Test cases สำหรับ `clean_loan_data()`:
+Test suite ประกอบด้วย 2 ส่วนหลัก:
+
+### 1. Data Transformation Tests (`test_data_cleaning.py`)
 - ✅ การแทนที่ null ใน emp_length ด้วย 'N/A'
 - ✅ การกรอง application_type '<NA>'
 - ✅ การแปลง issue_d เป็น datetime
 - ✅ การแปลง int_rate จาก % string เป็น float
 - ✅ การรักษา data integrity
-- ✅ Edge cases (empty dataframe, missing columns)
+
+### 2. Data Quality Tests (`test_data_quality.py`)
+- ✅ Dimension tables ไม่มี duplicate values
+- ✅ Foreign keys ใน fact table มีอยู่จริงใน dimensions
+- ✅ Loan amounts เป็นค่าบวก
+- ✅ Funded amount ไม่เกิน loan amount
+- ✅ Interest rate อยู่ในช่วง 0-1
+
+**รวม: 10 test cases** ครอบคลุมทั้ง data transformation และ star schema integrity
 
 ## Development Workflow
 
